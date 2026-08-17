@@ -130,5 +130,32 @@ void main() {
 
       expect(result, const FailureResult<int, String>('StateError'));
     });
+
+    test('guardStream maps values to successes', () async {
+      final results = await Result.guardStream<int, String>(
+        () => Stream.fromIterable([1, 2]),
+        onError: (error, _) => error.toString(),
+      ).toList();
+
+      expect(results, const [Success<int, String>(1), Success<int, String>(2)]);
+    });
+
+    test('guardStream captures errors emitted after subscription', () async {
+      final results = await Result.guardStream<int, String>(
+        () => Stream<int>.error(StateError('failed')),
+        onError: (error, _) => error.runtimeType.toString(),
+      ).toList();
+
+      expect(results, const [FailureResult<int, String>('StateError')]);
+    });
+
+    test('guardStream captures synchronous stream creation errors', () async {
+      final results = await Result.guardStream<int, String>(
+        () => throw StateError('failed'),
+        onError: (error, _) => error.runtimeType.toString(),
+      ).toList();
+
+      expect(results, const [FailureResult<int, String>('StateError')]);
+    });
   });
 }

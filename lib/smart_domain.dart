@@ -7,5 +7,8 @@ export 'src/failure/failures.dart';
 export 'src/result/result.dart';
 export 'src/usecase/no_params.dart';
 export 'src/usecase/no_params_usecase.dart';
+export 'src/usecase/no_params_stream_usecase.dart';
+export 'src/usecase/result_stream_usecase.dart';
 export 'src/usecase/result_usecase.dart';
+export 'src/usecase/stream_usecase.dart';
 export 'src/usecase/usecase.dart';

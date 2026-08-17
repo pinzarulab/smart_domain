@@ -8,7 +8,7 @@ databases, state management, or repository implementations.
 
 ```yaml
 dependencies:
-  smart_domain: ^0.1.0
+  smart_domain: ^0.2.0
 ```
 
 ## Result
@@ -53,6 +53,7 @@ Available operations:
 - `fold`
 - `getOrNull`, `errorOrNull`, `getOrElse`
 - `guard`, `guardAsync`
+- `guardStream`
 
 ## Failures
 
@@ -124,6 +125,22 @@ Use `ResultUseCase<Output, Params, Error>` for a custom error type.
 `NoParamsUseCase<Output>` supports `await useCase()` calls. `NoParams` remains
 available when uniform parameterized use cases are preferred.
 
+For reactive repositories, use `StreamUseCase<Output, Params>` or
+`ResultStreamUseCase<Output, Params, Error>`. `Result.guardStream` converts
+both stream-creation errors and errors emitted after subscription:
+
+```dart
+Stream<Result<List<Message>, Failure>> execute(ChatParams params) {
+  return Result.guardStream(
+    () => repository.watchMessages(params.chatId),
+    onError: (error, stackTrace) => UnknownFailure(
+      cause: error,
+      stackTrace: stackTrace,
+    ),
+  );
+}
+```
+
 ## Package boundary
 
 `smart_domain` is standalone. It does not depend on or modify
@@ -133,4 +150,3 @@ adapt another result type at the application boundary.
 ## Roadmap
 
 Middleware and typed use-case composition are candidates for later releases.
-Version 0.1.0 keeps its execution model intentionally small.

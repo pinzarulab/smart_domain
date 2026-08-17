@@ -32,6 +32,23 @@ sealed class Result<T, E> {
     }
   }
 
+  /// Converts values and errors from a stream into typed results.
+  ///
+  /// Errors thrown while creating the stream and errors emitted after a
+  /// listener subscribes are both captured.
+  static Stream<Result<T, E>> guardStream<T, E>(
+    Stream<T> Function() operation, {
+    required E Function(Object error, StackTrace stackTrace) onError,
+  }) async* {
+    try {
+      await for (final value in operation()) {
+        yield Success<T, E>(value);
+      }
+    } catch (error, stackTrace) {
+      yield FailureResult<T, E>(onError(error, stackTrace));
+    }
+  }
+
   /// Whether this result contains a value.
   bool get isSuccess => this is Success<T, E>;
 
