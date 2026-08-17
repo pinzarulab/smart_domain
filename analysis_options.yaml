@@ -1,0 +1,5 @@
+include: package:lints/recommended.yaml
+
+linter:
+  rules:
+    avoid_catches_without_on_clauses: false
