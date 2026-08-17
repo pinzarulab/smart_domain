@@ -40,6 +40,37 @@ final class CurrentValuesUseCase
   Stream<Result<int, String>> execute() => Stream.value(const Success(42));
 }
 
+final class DoubleValueUseCase extends FutureUseCase<int, int> {
+  const DoubleValueUseCase();
+
+  @override
+  Future<int> execute(int params) async => params * 2;
+}
+
+final class CurrentNullableValueUseCase extends NoParamsFutureUseCase<String?> {
+  const CurrentNullableValueUseCase();
+
+  @override
+  Future<String?> execute() async => null;
+}
+
+final class ValueSequenceUseCase extends ValueStreamUseCase<int, int> {
+  const ValueSequenceUseCase();
+
+  @override
+  Stream<int> execute(int params) => Stream.fromIterable([
+        for (var value = 0; value < params; value++) value,
+      ]);
+}
+
+final class CurrentValueSequenceUseCase
+    extends NoParamsValueStreamUseCase<int> {
+  const CurrentValueSequenceUseCase();
+
+  @override
+  Stream<int> execute() => Stream.value(42);
+}
+
 void main() {
   test('UseCase call delegates to execute', () async {
     expect(await const DoubleUseCase()(4), const Success<int, Failure>(8));
@@ -75,5 +106,21 @@ void main() {
       await const CurrentValuesUseCase()().single,
       const Success<int, String>(42),
     );
+  });
+
+  test('FutureUseCase call delegates to execute', () async {
+    expect(await const DoubleValueUseCase()(4), 8);
+  });
+
+  test('NoParamsFutureUseCase supports nullable outputs', () async {
+    expect(await const CurrentNullableValueUseCase()(), isNull);
+  });
+
+  test('ValueStreamUseCase call delegates to execute', () async {
+    expect(await const ValueSequenceUseCase()(3).toList(), [0, 1, 2]);
+  });
+
+  test('NoParamsValueStreamUseCase is called without arguments', () async {
+    expect(await const CurrentValueSequenceUseCase()().single, 42);
   });
 }

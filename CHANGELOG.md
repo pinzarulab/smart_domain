@@ -1,5 +1,11 @@
 ## 0.2.0
 
+- Added `FutureUseCase` and `NoParamsFutureUseCase` for operations that return
+  plain future values.
+- Added `ValueStreamUseCase` and `NoParamsValueStreamUseCase` for operations
+  that return plain streams.
+- Kept nullable outputs generic: use `FutureUseCase<T?, P>` or
+  `ValueStreamUseCase<T?, P>` without separate nullable abstractions.
 - Added `Result.guardStream` for converting synchronous and asynchronous stream
   errors into typed results.
 - Added standard and custom-error stream use-case abstractions.

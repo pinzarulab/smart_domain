@@ -141,6 +141,12 @@ Stream<Result<List<Message>, Failure>> execute(ChatParams params) {
 }
 ```
 
+For deliberately exception-based or infallible operations, use
+`FutureUseCase<Output, Params>` and `ValueStreamUseCase<Output, Params>`.
+Parameterless variants are `NoParamsFutureUseCase` and
+`NoParamsValueStreamUseCase`. Nullable output needs no extra abstraction:
+`FutureUseCase<String?, Params>` works directly.
+
 ## Package boundary
 
 `smart_domain` is standalone. It does not depend on or modify
