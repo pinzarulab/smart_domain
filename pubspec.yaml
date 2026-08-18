@@ -1,6 +1,6 @@
 name: smart_domain
 description: Dependency-free Result, Failure, and UseCase primitives for Clean Architecture domain layers.
-version: 0.3.0
+version: 0.4.0
 repository: https://github.com/pinzarulab/smart_domain
 
 environment:

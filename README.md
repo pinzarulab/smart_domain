@@ -8,7 +8,7 @@ databases, state management, or repository implementations.
 
 ```yaml
 dependencies:
-  smart_domain: ^0.3.0
+  smart_domain: ^0.4.0
 ```
 
 ## Result
