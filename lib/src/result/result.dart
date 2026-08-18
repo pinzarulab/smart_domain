@@ -1,5 +1,10 @@
+import 'dart:async';
+
 part 'failure_result.dart';
 part 'success.dart';
+
+/// Successes and failures collected from multiple [Result] values.
+typedef ResultPartition<T, E> = ({List<T> successes, List<E> failures});
 
 /// Outcome of an operation that either contains a value or an error.
 ///
@@ -7,6 +12,15 @@ part 'success.dart';
 /// Use any error type suitable for the domain.
 sealed class Result<T, E> {
   const Result();
+
+  /// Creates a successful result.
+  static Result<T, E> success<T, E>(T value) => Success<T, E>(value);
+
+  /// Creates a failed result.
+  static Result<T, E> failure<T, E>(E error) => FailureResult<T, E>(error);
+
+  /// Creates a successful result for an operation with no output value.
+  static Result<void, E> unit<E>() => Success<void, E>(null);
 
   /// Captures a synchronous exception and converts it to an error value.
   static Result<T, E> guard<T, E>(
@@ -49,6 +63,58 @@ sealed class Result<T, E> {
     }
   }
 
+  /// Collects successful results in input order or returns the first failure.
+  static Future<Result<List<T>, E>> sequence<T, E>(
+    Iterable<FutureOr<Result<T, E>>> results,
+  ) async {
+    final values = <T>[];
+    for (final resultOrFuture in results) {
+      final result = await resultOrFuture;
+      switch (result) {
+        case Success<T, E>(:final value):
+          values.add(value);
+        case FailureResult<T, E>(:final error):
+          return FailureResult<List<T>, E>(error);
+      }
+    }
+    return Success<List<T>, E>(values);
+  }
+
+  /// Maps each input to a result, collecting values or stopping at failure.
+  static Future<Result<List<T>, E>> traverse<Input, T, E>(
+    Iterable<Input> inputs,
+    FutureOr<Result<T, E>> Function(Input input) transform,
+  ) async {
+    final values = <T>[];
+    for (final input in inputs) {
+      final result = await transform(input);
+      switch (result) {
+        case Success<T, E>(:final value):
+          values.add(value);
+        case FailureResult<T, E>(:final error):
+          return FailureResult<List<T>, E>(error);
+      }
+    }
+    return Success<List<T>, E>(values);
+  }
+
+  /// Separates all successes and failures without short-circuiting.
+  static ResultPartition<T, E> partition<T, E>(
+    Iterable<Result<T, E>> results,
+  ) {
+    final successes = <T>[];
+    final failures = <E>[];
+    for (final result in results) {
+      switch (result) {
+        case Success<T, E>(:final value):
+          successes.add(value);
+        case FailureResult<T, E>(:final error):
+          failures.add(error);
+      }
+    }
+    return (successes: successes, failures: failures);
+  }
+
   /// Whether this result contains a value.
   bool get isSuccess => this is Success<T, E>;
 
@@ -73,7 +139,7 @@ sealed class Result<T, E> {
 
   /// Asynchronously transforms a success value while preserving an error.
   Future<Result<U, E>> mapAsync<U>(
-    Future<U> Function(T value) transform,
+    FutureOr<U> Function(T value) transform,
   ) async =>
       switch (this) {
         Success<T, E>(:final value) => Success<U, E>(await transform(value)),
@@ -96,7 +162,7 @@ sealed class Result<T, E> {
 
   /// Asynchronously chains a result-returning operation without nesting.
   Future<Result<U, E>> flatMapAsync<U>(
-    Future<Result<U, E>> Function(T value) transform,
+    FutureOr<Result<U, E>> Function(T value) transform,
   ) async =>
       switch (this) {
         Success<T, E>(:final value) => await transform(value),
@@ -120,4 +186,43 @@ sealed class Result<T, E> {
         Success<T, E>(:final value) => value,
         FailureResult<T, E>(:final error) => fallback(error),
       };
+
+  /// Replaces a failure with a successful fallback value.
+  Result<T, E> recover(T Function(E error) fallback) => switch (this) {
+        Success<T, E>() => this,
+        FailureResult<T, E>(:final error) => Success<T, E>(fallback(error)),
+      };
+
+  /// Asynchronously replaces a failure with a successful fallback value.
+  Future<Result<T, E>> recoverAsync(
+    FutureOr<T> Function(E error) fallback,
+  ) async =>
+      switch (this) {
+        Success<T, E>() => this,
+        FailureResult<T, E>(:final error) =>
+          Success<T, E>(await fallback(error)),
+      };
+
+  /// Runs [effect] for a success and returns this result unchanged.
+  Result<T, E> tap(void Function(T value) effect) {
+    if (this case Success<T, E>(:final value)) effect(value);
+    return this;
+  }
+
+  /// Runs [effect] for a failure and returns this result unchanged.
+  Result<T, E> tapError(void Function(E error) effect) {
+    if (this case FailureResult<T, E>(:final error)) effect(error);
+    return this;
+  }
+
+  /// Returns the success value or throws the contained error.
+  T getOrThrow() {
+    return switch (this) {
+      Success<T, E>(:final value) => value,
+      FailureResult<T, E>(:final error) when error is Object => throw error,
+      FailureResult<T, E>() => throw StateError(
+          'Cannot throw a null Result error.',
+        ),
+    };
+  }
 }

@@ -8,7 +8,7 @@ databases, state management, or repository implementations.
 
 ```yaml
 dependencies:
-  smart_domain: ^0.2.0
+  smart_domain: ^0.3.0
 ```
 
 ## Result
@@ -46,14 +46,77 @@ final Result<Profile, Failure> profile = await result.flatMapAsync(
 );
 ```
 
+Create each result branch without naming implementation classes:
+
+```dart
+final Result<User, Failure> user = Result.success(value);
+final Result<User, Failure> failed = Result.failure(error);
+final Result<void, Failure> saved = Result.unit();
+```
+
+Recover failures, observe branches, or cross an exception-based boundary:
+
+```dart
+final recovered = result.recover((failure) => fallbackUser);
+
+result
+    .tap((user) => cache.store(user))
+    .tapError(logger.error);
+
+final user = result.getOrThrow();
+```
+
+Transform a future result directly. Callbacks may be synchronous or
+asynchronous:
+
+```dart
+final name = repository
+    .getUser(42)
+    .mapResult((user) => user.name);
+
+final profile = repository
+    .getUser(42)
+    .flatMapResult((user) => repository.getProfile(user.id));
+
+final label = repository.getUser(42).foldResult(
+  onSuccess: (user) => user.name,
+  onFailure: (failure) => failure.message ?? 'Unknown user',
+);
+```
+
+Compose collections while preserving input order:
+
+```dart
+final users = await Result.sequence([
+  repository.getUser(1),
+  repository.getUser(2),
+]);
+
+final profiles = await Result.traverse(
+  userIds,
+  repository.getUser,
+);
+
+final partition = Result.partition(results);
+print(partition.successes);
+print(partition.failures);
+```
+
+`sequence` and `traverse` stop at first failure. `partition` processes every
+result.
+
 Available operations:
 
 - `map`, `mapAsync`, `mapError`
 - `flatMap`, `flatMapAsync`
 - `fold`
-- `getOrNull`, `errorOrNull`, `getOrElse`
+- `recover`, `recoverAsync`
+- `tap`, `tapError`
+- `getOrNull`, `errorOrNull`, `getOrElse`, `getOrThrow`
 - `guard`, `guardAsync`
 - `guardStream`
+- `sequence`, `traverse`, `partition`
+- `mapResult`, `flatMapResult`, `foldResult` on future results
 
 ## Failures
 

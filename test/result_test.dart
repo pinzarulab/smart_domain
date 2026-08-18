@@ -3,6 +3,16 @@ import 'package:test/test.dart';
 
 void main() {
   group('Result', () {
+    test('factories create success, failure, and unit results', () {
+      final Result<int, String> success = Result.success(1);
+      final Result<int, String> failure = Result.failure('failed');
+      final unit = Result.unit<String>();
+
+      expect(success, const Success<int, String>(1));
+      expect(failure, const FailureResult<int, String>('failed'));
+      expect(unit, const Success<void, String>(null));
+    });
+
     test('reports its branch', () {
       const success = Success<int, String>(1);
       const failure = FailureResult<int, String>('failed');
@@ -55,6 +65,15 @@ void main() {
       );
     });
 
+    test('mapAsync accepts synchronous transforms', () async {
+      const Result<int, String> success = Success(2);
+
+      expect(
+        await success.mapAsync((value) => value * 2),
+        const Success<int, String>(4),
+      );
+    });
+
     test('mapError transforms only failure', () {
       const Result<int, String> success = Success(2);
       const Result<int, String> failure = FailureResult('failed');
@@ -100,6 +119,15 @@ void main() {
       },
     );
 
+    test('flatMapAsync accepts synchronous transforms', () async {
+      const Result<int, String> success = Success(2);
+
+      expect(
+        await success.flatMapAsync((value) => Success(value * 2)),
+        const Success<int, String>(4),
+      );
+    });
+
     test('extractors return values, errors, and fallbacks', () {
       const Result<int, String> success = Success(2);
       const Result<int, String> failure = FailureResult('failed');
@@ -109,6 +137,112 @@ void main() {
       expect(failure.getOrNull(), isNull);
       expect(failure.errorOrNull(), 'failed');
       expect(failure.getOrElse((error) => error.length), 6);
+      expect(success.getOrThrow(), 2);
+      expect(() => failure.getOrThrow(), throwsA('failed'));
+    });
+
+    test('getOrThrow reports nullable null errors explicitly', () {
+      const Result<int, String?> failure = FailureResult(null);
+
+      expect(
+        () => failure.getOrThrow(),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            'Cannot throw a null Result error.',
+          ),
+        ),
+      );
+    });
+
+    test('recover transforms only failures into successes', () {
+      const Result<int, String> success = Success(2);
+      const Result<int, String> failure = FailureResult('failed');
+
+      expect(identical(success.recover((_) => 0), success), isTrue);
+      expect(failure.recover((error) => error.length), const Success(6));
+    });
+
+    test('recoverAsync accepts synchronous and asynchronous fallbacks',
+        () async {
+      const Result<int, String> failure = FailureResult('failed');
+
+      expect(
+        await failure.recoverAsync((error) => error.length),
+        const Success<int, String>(6),
+      );
+      expect(
+        await failure.recoverAsync((error) async => error.length * 2),
+        const Success<int, String>(12),
+      );
+    });
+
+    test('tap and tapError run only matching effects and preserve identity',
+        () {
+      const Result<int, String> success = Success(2);
+      const Result<int, String> failure = FailureResult('failed');
+      int? tappedValue;
+      String? tappedError;
+
+      final tappedSuccess = success
+          .tap((value) => tappedValue = value)
+          .tapError((error) => tappedError = error);
+      final tappedFailure = failure
+          .tap((value) => tappedValue = value * 2)
+          .tapError((error) => tappedError = error);
+
+      expect(identical(tappedSuccess, success), isTrue);
+      expect(identical(tappedFailure, failure), isTrue);
+      expect(tappedValue, 2);
+      expect(tappedError, 'failed');
+    });
+
+    test('sequence preserves order and accepts sync or async results',
+        () async {
+      final result = await Result.sequence<int, String>([
+        const Success(1),
+        Future.value(const Success(2)),
+        const Success(3),
+      ]);
+
+      expect(result, isA<Success<List<int>, String>>());
+      expect(result.getOrNull(), [1, 2, 3]);
+    });
+
+    test('sequence returns first failure', () async {
+      final result = await Result.sequence<int, String>([
+        const Success(1),
+        const FailureResult('first'),
+        const FailureResult('second'),
+      ]);
+
+      expect(result, const FailureResult<List<int>, String>('first'));
+    });
+
+    test('traverse maps sequentially and stops at first failure', () async {
+      final visited = <int>[];
+      final result = await Result.traverse<int, int, String>([1, 2, 3], (
+        value,
+      ) {
+        visited.add(value);
+        return value == 2 ? const FailureResult('failed') : Success(value * 2);
+      });
+
+      expect(result, const FailureResult<List<int>, String>('failed'));
+      expect(visited, [1, 2]);
+    });
+
+    test('partition collects every success and failure', () {
+      final partition = Result.partition<int, String>(const [
+        Success(1),
+        FailureResult('first'),
+        Success(2),
+        FailureResult('second'),
+      ]);
+
+      expect(partition.successes, [1, 2]);
+      expect(partition.failures, ['first', 'second']);
     });
 
     test('guard captures synchronous exceptions with stack traces', () {

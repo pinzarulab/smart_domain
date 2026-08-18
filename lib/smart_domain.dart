@@ -5,6 +5,7 @@ export 'src/failure/failure.dart';
 export 'src/failure/failure_mapper.dart';
 export 'src/failure/failures.dart';
 export 'src/result/result.dart';
+export 'src/result/result_future_extensions.dart';
 export 'src/usecase/no_params.dart';
 export 'src/usecase/future_usecase.dart';
 export 'src/usecase/no_params_usecase.dart';

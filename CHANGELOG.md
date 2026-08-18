@@ -1,3 +1,12 @@
+## 0.3.0
+
+- Added `Result.success`, `Result.failure`, and `Result.unit` factories.
+- Added recovery, side-effect, and throwing helpers.
+- Added `Future<Result<T, E>>` mapping, flat-mapping, and folding extensions.
+- Allowed synchronous or asynchronous callbacks in async transformations.
+- Added `Result.sequence`, `Result.traverse`, and `Result.partition` collection
+  helpers.
+
 ## 0.2.0
 
 - Added `FutureUseCase` and `NoParamsFutureUseCase` for operations that return
