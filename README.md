@@ -216,6 +216,19 @@ Parameterless variants are `NoParamsFutureUseCase` and
 `smart_repository`. A data-layer repository can return `Result<T, Failure>` or
 adapt another result type at the application boundary.
 
+## Flutter example
+
+The [`example`](example/) directory contains a complete Material app for
+Android, iOS, web, macOS, Windows, and Linux. It demonstrates result creation,
+recovery, future extensions, collection composition, use cases, and repository
+boundaries.
+
+```sh
+cd example
+flutter pub get
+flutter run
+```
+
 ## Roadmap
 
 Middleware and typed use-case composition are candidates for later releases.

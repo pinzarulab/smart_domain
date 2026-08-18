@@ -6,6 +6,7 @@
 - Allowed synchronous or asynchronous callbacks in async transformations.
 - Added `Result.sequence`, `Result.traverse`, and `Result.partition` collection
   helpers.
+- Added a complete multi-platform Flutter example application.
 
 ## 0.2.0
 
