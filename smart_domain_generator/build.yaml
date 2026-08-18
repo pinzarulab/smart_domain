@@ -1,8 +1,0 @@
-builders:
-  generate_use_cases:
-    import: "package:smart_domain_generator/builder.dart"
-    builder_factories: ["generateUseCasesBuilder"]
-    build_extensions: {".dart": [".smart_domain_generator.g.part"]}
-    auto_apply: dependents
-    build_to: cache
-    applies_builders: ["source_gen:combining_builder"]

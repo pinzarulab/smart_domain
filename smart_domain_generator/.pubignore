@@ -1,7 +1,0 @@
-.dart_tool/
-build/
-coverage/
-pubspec.lock
-example/.dart_tool/
-example/build/
-example/pubspec.lock

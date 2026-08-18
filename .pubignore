@@ -3,4 +3,3 @@
 build/
 coverage/
 pubspec.lock
-smart_domain_generator/
