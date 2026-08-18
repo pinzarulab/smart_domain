@@ -1,0 +1,22 @@
+name: smart_domain_generator
+description: Build runner generator for smart_domain repository use cases.
+version: 0.1.0
+repository: https://github.com/pinzarulab/smart_domain
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  analyzer: ^14.1.0
+  build: ^4.0.0
+  smart_domain: ^0.3.0
+  source_gen: ^4.2.0
+
+dependency_overrides:
+  smart_domain:
+    path: ../
+
+dev_dependencies:
+  build_runner: ^2.16.0
+  lints: ^6.0.0
+  test: ^1.29.0

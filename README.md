@@ -184,6 +184,39 @@ final result = await GetUserUseCase(repository)(
 );
 ```
 
+Use `smart_domain_generator` to create this boilerplate from repository
+interfaces while keeping code-generation dependencies outside the runtime
+package:
+
+```yaml
+dev_dependencies:
+  build_runner: ^2.16.0
+  smart_domain_generator: ^0.1.0
+```
+
+```dart
+import 'package:smart_domain/smart_domain.dart';
+
+part 'orders_repository.g.dart';
+
+@GenerateUseCases()
+abstract interface class OrdersRepository {
+  Future<Result<Order, Failure>> getOrder(int id);
+
+  Future<Result<List<Order>, Failure>> getOrders();
+
+  Future<Result<Order, Failure>> createOrder(CreateOrderParams params);
+}
+```
+
+```sh
+dart run build_runner build
+```
+
+This generates `GetOrderUseCase`, `GetOrderParams`, `GetOrdersUseCase`, and
+`CreateOrderUseCase`. Existing parameter objects such as `CreateOrderParams`
+are reused.
+
 Use `ResultUseCase<Output, Params, Error>` for a custom error type.
 `NoParamsUseCase<Output>` supports `await useCase()` calls. `NoParams` remains
 available when uniform parameterized use cases are preferred.

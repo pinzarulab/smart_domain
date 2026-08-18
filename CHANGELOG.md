@@ -1,3 +1,8 @@
+## 0.4.0
+
+- Added the `GenerateUseCases` annotation and companion
+  `smart_domain_generator` build runner package.
+
 ## 0.3.0
 
 - Added `Result.success`, `Result.failure`, and `Result.unit` factories.

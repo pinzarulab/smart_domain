@@ -1,0 +1,20 @@
+name: smart_domain_generator_example
+publish_to: none
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  smart_domain:
+    path: ../..
+
+dev_dependencies:
+  build_runner: ^2.16.0
+  lints: ^6.0.0
+  smart_domain_generator:
+    path: ..
+  test: ^1.29.0
+
+dependency_overrides:
+  smart_domain:
+    path: ../..

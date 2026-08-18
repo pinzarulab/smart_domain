@@ -1,6 +1,7 @@
 /// Dependency-free domain primitives for Clean Architecture applications.
 library;
 
+export 'src/annotations/generate_use_cases.dart';
 export 'src/failure/failure.dart';
 export 'src/failure/failure_mapper.dart';
 export 'src/failure/failures.dart';
