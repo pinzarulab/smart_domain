@@ -23,5 +23,4 @@ abstract interface class OrdersRepository {
 
   Future<Result<Order, Failure>> createOrder(CreateOrderParams params);
 
-  Future<Result<Order, Failure>> deleteOrder(Strin);
 }
